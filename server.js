@@ -13,6 +13,15 @@ const rateConfigRoutes = require('./src/routes/rateConfigs.routes');
 const tyreRoutes = require('./src/routes/tyres.routes');
 
 const app = express();
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('Failed to connect to MongoDB:', err.message);
+    res.status(500).json({ error: 'Database connection failed' });
+  }
+});
 
 const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*';
 app.use(cors({ origin: allowedOrigins }));
@@ -34,13 +43,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-const PORT = process.env.PORT || 4000;
-
-connectDB()
-  .then(() => {
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch((err) => {
-    console.error('Failed to connect to MongoDB:', err.message);
-    process.exit(1);
-  });
+module.exports = app;
